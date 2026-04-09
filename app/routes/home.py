@@ -1,16 +1,22 @@
-from fastapi import APIRouter, Request
-
+from fastapi import APIRouter, Request, Depends, HTTPException, status
+from app.utils.security import verify_request
+from app.schemas.errors import ErrorResponse
 router = APIRouter(prefix="/api/home", tags=["Home page"])
 
 
 
-@router.get("/")
-async def home(request:Request):
-    logged_in = request.cookies.get("cred")
-    if logged_in:
+@router.get("/", responses={code:{"model":ErrorResponse} for code in [401]})
+async def home(request:Request, info:dict = Depends(verify_request)):
+    try:
         return {
-            "logged_in":True
+            "status":True
         }
-    return {
-        "logged_in":False
-    }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ErrorResponse(
+                message="Unauthorized access",
+                error=f"{e}",
+                success=False
+            )
+        )

@@ -51,12 +51,12 @@ async def db_create_user(data:SignupRequest)-> dict:
             admin = db[data.email]
             admin_data = {
                 "user_name":data.name,
-                "email":data.password,
+                "email":data.email,
                 "password":data.password,
                 "occupation":data.occupation
             }
             result = await admin.insert_one(admin_data)
-            await db_create_analytics()
+            await db_create_analytics(str(result.inserted_id))
             return {
                 "message":"User created successfully!",
                 "status":True,
