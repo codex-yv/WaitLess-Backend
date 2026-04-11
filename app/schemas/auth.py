@@ -22,3 +22,14 @@ class SignupResponse(BaseModel):
     status:bool
     access_token:Union[str, None]
     token_type:Union[str, None]
+
+
+class CoordinatorLoginRequest(BaseModel):
+    email:str
+    token:str
+
+class CoordinatorLoginResponse(BaseModel):
+    message:str
+    status:bool
+    access_token:Union[str, None]
+    token_type:Union[str, None]

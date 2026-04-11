@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, HTTPException, Depends
 
-from app.database.dashboard import db_get_dashboard_stats
-from app.schemas.dashboard import DashboardResponse
+from app.database.dashboard import db_get_dashboard_stats, db_add_coordinator
+from app.schemas.dashboard import DashboardResponse, CoordinatorRequest, CoordinatorResponse
 from app.schemas.errors import ErrorResponse
 
 from app.utils.security import verify_request
@@ -32,4 +32,22 @@ async def dashboard(info:str = Depends(verify_request)):
                 error=f"ERROR FOUND:{e}",
                 success=False
             ).model_dump()
+        )
+    
+@router.post("/add-cordinator",
+             response_model=CoordinatorResponse,
+             responses={code:{"model":ErrorResponse} for code in [500]})
+async def add_cordinator(data:CoordinatorRequest, info:str= Depends(verify_request)):
+    try:
+        admin_email = info["sub"]["email"]
+        result = await db_add_coordinator(admin_email=admin_email, coordinator=data)
+        return CoordinatorResponse(**result)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorResponse(
+                message="Operation Failed!",
+                error=f"Information:{e}",
+                success=False
+            )
         )

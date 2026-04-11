@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException, status, Response
-from app.database.auth import db_valid_user, db_create_user
-from app.schemas.auth import LoginRequest, LoginResponse, SignupRequest, SignupResponse
+from app.database.auth import db_valid_user, db_create_user, db_verify_coordinator
+from app.schemas.auth import LoginRequest, LoginResponse, SignupRequest, SignupResponse, CoordinatorLoginRequest, CoordinatorLoginResponse
 from app.schemas.errors import ErrorResponse
 
 from app.utils.security import create_access_token
@@ -69,4 +69,37 @@ async def signup(response:Response, data:SignupRequest):
                 error="Internal Server Error",
                 message=f"Unable to signup:{e}"
             ).model_dump(),
+        )
+    
+
+@router.post("/login/coordinator",
+             response_model=CoordinatorLoginResponse,
+             responses={code:{"model":ErrorResponse} for code in [500]})
+async def coordinator_login(data:CoordinatorLoginRequest):
+    try:
+        result = await db_verify_coordinator(data)
+        if result["status"]:
+            access_token = create_access_token({"sub":{"email":data.email, "admin":False}})
+            return CoordinatorLoginResponse(
+                message=result["message"],
+                status=result["status"],
+                access_token=access_token,
+                token_type="bearer"
+            )
+        else:
+            return CoordinatorLoginResponse(
+                message=result["message"],
+                status=result["status"],
+                access_token=None,
+                token_type=None
+            )
+      
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorResponse(
+                message="Login Failed!",
+                error=f"Login Failed:{e}",
+                success=False
+            )
         )

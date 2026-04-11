@@ -1,5 +1,8 @@
 from config.environment import database
 from bson import objectid
+from app.utils.database import utils_db_get_token
+from app.schemas.dashboard import CoordinatorRequest
+
 
 async def db_create_analytics(admin_id:str):
     data = {
@@ -40,3 +43,34 @@ async def db_get_dashboard_stats(admin_id) -> dict:
             "data":None
         }
     
+
+async def db_add_coordinator(admin_email:str, coordinator:CoordinatorRequest):
+    try:
+        db = database["Coordinators"]
+        token = await utils_db_get_token(admin_email)
+
+        collection = db[token]
+        coordinators = await collection.find_one({"email":admin_email})
+        team:list = coordinators["team"]
+
+        if coordinator.email in team:
+            return {
+                "message":"Coordinator already exist.",
+                "status":True
+            }
+        else:
+            team.append(coordinator.email)
+            await collection.update_one(
+                {"email":admin_email},
+                {"$set":{"team":team}}
+            )
+            return {
+                "message":"Coordinator added successfuly",
+                "status":True
+            }
+    except Exception as e:
+        return {
+            "message":f"Operation Failed due to:{e}",
+            "status":False
+        }
+

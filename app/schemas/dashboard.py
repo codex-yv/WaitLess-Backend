@@ -5,3 +5,10 @@ class DashboardResponse(BaseModel):
     status:bool
     message:str
     data: Union[Dict[str, Union[int, str]], None]
+
+class CoordinatorRequest(BaseModel):
+    email:str
+
+class CoordinatorResponse(BaseModel):
+    status:bool
+    message:str

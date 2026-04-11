@@ -4,6 +4,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from config.environment import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+import random
+import string
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="TOKEN")
@@ -28,3 +30,18 @@ def verify_request(token: str = Depends(oauth2_scheme)):
         return payload.get("sub")
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
+    
+
+def create_admin_token():
+    # List of alphabets
+    alphabets = list(string.ascii_lowercase)
+
+    pre = random_letters = ''.join(random.sample(alphabets, 3))
+    mid = random_letters = ''.join(random.sample(alphabets, 3))
+    end = random_letters = ''.join(random.sample(alphabets, 3))
+
+    token = pre+"-"+mid+"-"+end
+
+    return token
+
+    
