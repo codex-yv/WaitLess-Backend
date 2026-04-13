@@ -37,9 +37,9 @@ async def dashboard(info:str = Depends(verify_request)):
 @router.post("/add-cordinator",
              response_model=CoordinatorResponse,
              responses={code:{"model":ErrorResponse} for code in [500]})
-async def add_cordinator(data:CoordinatorRequest, info:str):#= Depends(verify_request)
+async def add_cordinator(data:CoordinatorRequest, info:str= Depends(verify_request)):
     try:
-        admin_email = info #["sub"]["email"]
+        admin_email = info["sub"]["email"]
         result = await db_add_coordinator(admin_email=admin_email, coordinator=data)
         return CoordinatorResponse(**result)
     except Exception as e:
