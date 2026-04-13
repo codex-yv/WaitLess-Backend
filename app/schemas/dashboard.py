@@ -7,6 +7,7 @@ class DashboardResponse(BaseModel):
     data: Union[Dict[str, Union[int, str]], None]
 
 class CoordinatorRequest(BaseModel):
+    name:str
     email:str
 
 class CoordinatorResponse(BaseModel):

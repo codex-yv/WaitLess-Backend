@@ -13,7 +13,7 @@ async def utils_db_create_coordinators(token:str, email):
 
     data = {
         "email":email,
-        "team":[]
+        "team":{}
     }
 
     await collection.insert_one(data)

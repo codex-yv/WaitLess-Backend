@@ -51,15 +51,15 @@ async def db_add_coordinator(admin_email:str, coordinator:CoordinatorRequest):
 
         collection = db[token]
         coordinators = await collection.find_one({"email":admin_email})
-        team:list = coordinators["team"]
+        team:dict = coordinators["team"]
 
-        if coordinator.email in team:
+        if coordinator.email in list(team.keys()):
             return {
                 "message":"Coordinator already exist.",
                 "status":True
             }
         else:
-            team.append(coordinator.email)
+            team[coordinator.email] = coordinator.name
             await collection.update_one(
                 {"email":admin_email},
                 {"$set":{"team":team}}

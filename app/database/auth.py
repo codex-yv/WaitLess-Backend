@@ -84,8 +84,9 @@ async def db_verify_coordinator(data:CoordinatorLoginRequest):
         collections = await db.list_collection_names()
         if data.token in collections:
             collection = db[data.token]
-            team = await collection.find_one({})
-            if data.email in team["team"]:
+            team_data = await collection.find_one({})
+            team:dict = team_data["team"]
+            if data.email in list(team.keys()):
                 return {
                     "message":"Login Successful",
                     "status":True
