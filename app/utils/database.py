@@ -7,11 +7,12 @@ async def utils_db_get_token(email:str) -> str:
     result = await admin.find_one({"email":email})
     return result["token"]
 
-async def utils_db_create_coordinators(token:str, email):
+async def utils_db_create_coordinators(token:str, email, admin_id):
     db = database["Coordinators"]
     collection = db[token]
 
     data = {
+        "admin_id":admin_id,
         "email":email,
         "team":{}
     }

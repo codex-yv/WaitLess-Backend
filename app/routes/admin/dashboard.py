@@ -12,9 +12,9 @@ router = APIRouter(prefix="/api/admin/dashboard", tags=["Admin Dashboard"])
             response_model=DashboardResponse,
             responses={code: {"model":ErrorResponse} for code in [401]}
             )
-async def dashboard(info:str = Depends(verify_request)):
+async def dashboard(info:dict = Depends(verify_request)):
     try:
-        admin_id = info["sub"]["id"]
+        admin_id = info["id"]
         dashboard_data = await db_get_dashboard_stats(admin_id)
         if dashboard_data["status"]:
             return DashboardResponse(**dashboard_data)
@@ -37,9 +37,9 @@ async def dashboard(info:str = Depends(verify_request)):
 @router.post("/add-cordinator",
              response_model=CoordinatorResponse,
              responses={code:{"model":ErrorResponse} for code in [500]})
-async def add_cordinator(data:CoordinatorRequest, info:str= Depends(verify_request)):
+async def add_cordinator(data:CoordinatorRequest, info:dict= Depends(verify_request)):
     try:
-        admin_email = info["sub"]["email"]
+        admin_email = info["email"]
         result = await db_add_coordinator(admin_email=admin_email, coordinator=data)
         return CoordinatorResponse(**result)
     except Exception as e:

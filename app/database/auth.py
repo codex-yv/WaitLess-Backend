@@ -63,7 +63,7 @@ async def db_create_user(data:SignupRequest)-> dict:
             result = await admin.insert_one(admin_data)
 
             await db_create_analytics(str(result.inserted_id))
-            await utils_db_create_coordinators(email = data.email, token=token)
+            await utils_db_create_coordinators(email = data.email, token=token, admin_id = str(result.inserted_id))
             
             return {
                 "message":"User created successfully!",
@@ -89,16 +89,22 @@ async def db_verify_coordinator(data:CoordinatorLoginRequest):
             if data.email in list(team.keys()):
                 return {
                     "message":"Login Successful",
+                    "admin_email":team_data["email"],
+                    "admin_id":team_data["admin_id"],
                     "status":True
                 }
             else:
                 return{
                     "message":"Email not found!",
+                    "admin_email":None,
+                    "admin_id":None,
                     "status":False
                 }
         else:
             return {
                 "message":"Invalid token.",
+                "admin_email":None,
+                "admin_id":None,
                 "status":False
             }
     except Exception as e:
