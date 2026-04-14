@@ -31,14 +31,13 @@ def verify_request(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
     
-
 def create_admin_token():
     # List of alphabets
     alphabets = list(string.ascii_lowercase)
 
-    pre = random_letters = ''.join(random.sample(alphabets, 3))
-    mid = random_letters = ''.join(random.sample(alphabets, 3))
-    end = random_letters = ''.join(random.sample(alphabets, 3))
+    pre = ''.join(random.sample(alphabets, 3))
+    mid = ''.join(random.sample(alphabets, 3))
+    end = ''.join(random.sample(alphabets, 3))
 
     token = pre+"-"+mid+"-"+end
 

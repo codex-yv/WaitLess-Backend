@@ -5,7 +5,7 @@ from typing import Union, List, Dict
 class FormsResponse(BaseModel):
     message:str
     error:Union[str, None]
-    data:Union[dict, None]
+    data:Union[List[Dict], None]
     status:bool
 
 class CreateFormRequest(BaseModel):
@@ -18,3 +18,15 @@ class CreateFormResponse(BaseModel):
     form_id:str
     error:Union[str, None]
     status:bool
+
+class SubmitFormRequest(BaseModel):
+    form_id:str
+    params_val:List[Dict[str, Union[str, int, None]]]
+
+class SubmitFormResponse(BaseModel):
+    message:str
+    error:Union[str, None]
+    status:bool
+    access_token:Union[str, None]
+    token_type:Union[str, None]
+

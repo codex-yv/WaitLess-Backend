@@ -14,10 +14,10 @@ router = APIRouter(prefix="/api/admin/form", tags=["Admin Form"])
 @router.get("/",
             response_model=FormsResponse,
             responses={code:{"model":ErrorResponse} for code in [500, 401]})
-async def get_forms(jwt_info:str = Depends(verify_request)):
+async def get_forms(jwt_info:dict = Depends(verify_request)): 
     try:
-        admin_email = jwt_info["sub"]["email"]
-        result = await db_get_forms(admin_email=admin_email)
+        admin_id = jwt_info["id"]
+        result = await db_get_forms(admin_id=admin_id)
         
         return FormsResponse(**result)
 
@@ -36,10 +36,10 @@ async def get_forms(jwt_info:str = Depends(verify_request)):
 @router.post("/create-form",
              response_model = CreateFormResponse,
              responses = {code:{"model":ErrorResponse} for code in [500, 401]})
-async def create_form(data:CreateFormRequest, jwt_info:str = Depends(verify_request)):
+async def create_form(data:CreateFormRequest, jwt_info:dict = Depends(verify_request)):
     try:
-        admin_email = jwt_info["sub"]["email"]
-        result = await db_create_form(admin_email=admin_email, form_params=data)
+        admin_id = jwt_info["id"]
+        result = await db_create_form(admin_id=admin_id, form_params=data)
         return CreateFormResponse(**result)
 
     except Exception as e:

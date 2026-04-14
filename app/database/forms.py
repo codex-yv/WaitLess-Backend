@@ -1,19 +1,25 @@
+from bson import ObjectId
 from config.environment import database
-from app.schemas.forms import CreateFormRequest
+from app.schemas.forms import CreateFormRequest,SubmitFormRequest 
 
 
-async def db_get_forms(admin_email:str):
+async def db_get_forms(admin_id:str):
     try:
         db = database["Forms"]
-        collection = db[admin_email]
+        collection = db["forms"]
 
-        forms = await collection.find_one({})
+        query = {"admin_id": admin_id}
+        forms = await collection.find(query).to_list(length=None)
+        results = []
         if forms:
-            forms["_id"] = str(forms["_id"])
+            for document in forms:
+                document["_id"] = str(document["_id"])  # convert ObjectId to string if needed
+                results.append(document)
+
             return {
                 "message":"forms found!",
                 "error":None,
-                "data": forms,
+                "data": results,
                 "status":True
             }
         else:
@@ -31,12 +37,45 @@ async def db_get_forms(admin_email:str):
             "status":False
         }
     
-async def db_create_form(admin_email:str, form_params:CreateFormRequest):
+
+async def db_get_form_by_id(form_id:str):
     try:
         db = database["Forms"]
-        collection = db[admin_email]
+        collection = db["forms"]
+
+        forms = await collection.find({"_id":ObjectId(form_id)}).to_list(length=None)
+        if forms:
+            forms[0]["_id"] = str(forms[0]["_id"])
+            return {
+                "message":"Form found!",
+                "data":forms,
+                "error":None,
+                "status":True
+            }
+        else:
+            return {
+                "message":"Invalid Scan!",
+                "data":None,
+                "error":None,
+                "status":True
+            }
+        
+    except Exception as e:
+        return {
+            "message":"Failed to get forms from database.",
+            "data":None,
+            "error":f"Error Description:{e}",
+            "status":False
+        }
+
+
+async def db_create_form(admin_id:str, form_params:CreateFormRequest):
+    try:
+        db = database["Forms"]
+        collection = db["forms"]
 
         forms_data = {
+            "admin_id":admin_id,
             "forms_params":form_params.form_params,
             "opens":form_params.opens_at,
             "closes":form_params.closes_at
@@ -58,3 +97,37 @@ async def db_create_form(admin_email:str, form_params:CreateFormRequest):
             "status":False
         }
     
+async def db_submit_client_form(data:SubmitFormRequest, client_id:str):
+    try:
+        db = database["Submissions"]
+        collection = db[data.form_id]
+
+        form_format = {
+            "client_id":client_id,
+            "params_val":data.params_val,
+            "checked":False,
+            "checked_time":None,
+            "skipped":False,
+            "cancelled":False,
+            "notifications":[]
+        }
+
+        await collection.insert_one(form_format)
+        return {
+            "message":"Form submitted successfully!",
+            "error":None,
+            "status":True
+        }
+    except Exception as e:
+        return {
+            "message":"Form not saved!",
+            "form_id":None,
+            "error": f"Operation Unsuccessful:{e}",
+            "status":False
+        }
+
+async def db_get_all_submissions(form_id:str):
+        db = database["Submissions"]
+        collection = db[form_id]
+        result = await collection.find({}).to_list(length=None)
+        return result
