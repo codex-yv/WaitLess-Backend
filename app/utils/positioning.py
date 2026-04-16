@@ -10,16 +10,18 @@ async def get_current_stats(client_id:str, form_id:str):
         notification = []
         template = []
         for client in result:
-            if (client["client_id"] != client_id) and (not client["cancelled"] and not client["skipped"] and client["checked"]):
+            if (client["client_id"] != client_id):#and (not client["cancelled"] and not client["skipped"] and client["checked"]):
                 your_spot+=1
                 continue
             template = client["params_val"]
             break
 
         for client in result:
-            if client["checked"]:
+            if client["checked"] or client["skipped"]:
                 current_pos+=1
                 timing.append(client["checked_time"])
+            if client["cancelled"]:
+                your_spot-=1
 
             if client["client_id"] == client_id:
                 notification = client["notifications"]

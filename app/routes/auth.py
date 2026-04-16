@@ -16,7 +16,7 @@ async def login(response:Response, data:LoginRequest):
     try:
         result = await db_valid_user(data)
         if result["status"]:
-            access_token = create_access_token({"sub":{"id":result["id"], "email":data.email, "admin":True}})
+            access_token = create_access_token({"sub":data.email, "user_data":{"id":result["id"], "email":data.email, "admin":True}})
             return LoginResponse(
                 message=result["message"],
                 status=result["status"],
@@ -47,7 +47,7 @@ async def signup(response:Response, data:SignupRequest):
     try:
         result = await db_create_user(data)
         if result["status"]:
-            access_token = create_access_token({"sub":{"id":result["id"], "email":data.email, "admin":True}})
+            access_token = create_access_token({"sub":data.email, "user_data":{"id":result["id"], "email":data.email, "admin":True}})
             return SignupResponse(
                 message=result["message"],
                 status=result["status"],
@@ -79,7 +79,7 @@ async def coordinator_login(data:CoordinatorLoginRequest):
     try:
         result = await db_verify_coordinator(data)
         if result["status"]:
-            access_token = create_access_token({"sub":{"email":result["admin_email"],"id":result["admin_id"], "admin":False}})
+            access_token = create_access_token({"sub":result["admin_email"], "user_data":{"email":result["admin_email"],"id":result["admin_id"], "admin":False}})
             return CoordinatorLoginResponse(
                 message=result["message"],
                 status=result["status"],

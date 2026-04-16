@@ -9,7 +9,8 @@ class FormsResponse(BaseModel):
     status:bool
 
 class CreateFormRequest(BaseModel):
-    form_params:List[Dict[str, Dict[str, Union[str, int, None]]]]
+    form_params:List[Dict]
+    title:str
     opens_at:str
     closes_at:str
 
@@ -21,7 +22,7 @@ class CreateFormResponse(BaseModel):
 
 class SubmitFormRequest(BaseModel):
     form_id:str
-    params_val:List[Dict[str, Union[str, int, None]]]
+    params_val:List[Dict]
 
 class SubmitFormResponse(BaseModel):
     message:str

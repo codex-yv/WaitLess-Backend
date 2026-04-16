@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, HTTPException, Depends
 
-from app.database.dashboard import db_get_dashboard_stats, db_add_coordinator
-from app.schemas.dashboard import DashboardResponse, CoordinatorRequest, CoordinatorResponse
+from app.database.dashboard import db_get_dashboard_stats, db_add_coordinator, db_show_coordinators, db_delete_coordinator
+from app.schemas.dashboard import DashboardResponse, CoordinatorRequest, CoordinatorResponse, ShowCoordinatorResponse, DeleteCoordinatorRequest, DeleteCoordinatorResponse
 from app.schemas.errors import ErrorResponse
 
 from app.utils.security import verify_request
@@ -34,7 +34,29 @@ async def dashboard(info:dict = Depends(verify_request)):
             ).model_dump()
         )
     
-@router.post("/add-cordinator",
+
+@router.get("/show-coordinators",
+            response_model=ShowCoordinatorResponse,
+            responses = {code:{"model":ErrorResponse} for code in [500, 401]})
+async def show_coordinators(info:dict = Depends(verify_request)):
+    try:
+        admin_email = info["email"]
+        result = await db_show_coordinators(admin_email=admin_email)
+        return ShowCoordinatorResponse(**result)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorResponse(
+                message="Operation Failed!",
+                error=f"Information:{e}",
+                success=False
+            ).model_dump()
+        )
+
+
+
+
+@router.post("/add-coordinator",
              response_model=CoordinatorResponse,
              responses={code:{"model":ErrorResponse} for code in [500]})
 async def add_cordinator(data:CoordinatorRequest, info:dict= Depends(verify_request)):
@@ -49,5 +71,23 @@ async def add_cordinator(data:CoordinatorRequest, info:dict= Depends(verify_requ
                 message="Operation Failed!",
                 error=f"Information:{e}",
                 success=False
-            )
+            ).model_dump()
+        )
+
+@router.post("/delete-coordinator",
+             response_model=DeleteCoordinatorResponse,
+             responses = {code:{"model":ErrorResponse} for code in [500, 401]})
+async def delete_coordinator(data:DeleteCoordinatorRequest, info:dict = Depends(verify_request)):
+    try:
+        admin_email = info["email"]
+        result = await db_delete_coordinator(admin_email=admin_email, coordinator_email= data.email)
+        return DeleteCoordinatorResponse(**result)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorResponse(
+                message="Operation Failed!",
+                error=f"Information:{e}",
+                success=False
+            ).model_dump()
         )

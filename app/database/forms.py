@@ -1,7 +1,7 @@
 from bson import ObjectId
 from config.environment import database
 from app.schemas.forms import CreateFormRequest,SubmitFormRequest 
-
+from app.utils.helpers import get_ist_date, is_time_expired
 
 async def db_get_forms(admin_id:str):
     try:
@@ -14,6 +14,7 @@ async def db_get_forms(admin_id:str):
         if forms:
             for document in forms:
                 document["_id"] = str(document["_id"])  # convert ObjectId to string if needed
+                document["expired"] = is_time_expired(document["closes"])
                 results.append(document)
 
             return {
@@ -45,13 +46,26 @@ async def db_get_form_by_id(form_id:str):
 
         forms = await collection.find({"_id":ObjectId(form_id)}).to_list(length=None)
         if forms:
+            await collection.update_one(
+                {"_id":ObjectId(form_id)},
+                {"$inc":{"total_scans":1}}
+            )
             forms[0]["_id"] = str(forms[0]["_id"])
-            return {
-                "message":"Form found!",
-                "data":forms,
-                "error":None,
-                "status":True
-            }
+            # print(is_time_expired(forms[0]["closes"]))
+            if not is_time_expired(forms[0]["closes"]):
+                return {
+                    "message":"Form found!",
+                    "data":forms,
+                    "error":None,
+                    "status":True
+                }
+            else:
+                return {
+                    "message":"Form has expired!",
+                    "data":None,
+                    "error":None,
+                    "status":True
+                }
         else:
             return {
                 "message":"Invalid Scan!",
@@ -77,8 +91,11 @@ async def db_create_form(admin_id:str, form_params:CreateFormRequest):
         forms_data = {
             "admin_id":admin_id,
             "forms_params":form_params.form_params,
+            "title":form_params.title,
             "opens":form_params.opens_at,
-            "closes":form_params.closes_at
+            "closes":form_params.closes_at,
+            "date": get_ist_date(),
+            "total_scans":0
         }
         
         result = await collection.insert_one(forms_data)

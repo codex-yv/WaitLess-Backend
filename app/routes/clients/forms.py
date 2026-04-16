@@ -56,7 +56,7 @@ async def submit_client_form(data:SubmitFormRequest):
         client_id = create_admin_token() # using admin token to create clien token
         result = await db_submit_client_form(data=data, client_id=client_id)
         if result["status"]:
-            jwt_data = {"sub":{"client_id":client_id}, "form_id":data.form_id}
+            jwt_data = {"user_data":{"client_id":client_id, "form_id":data.form_id}}
             access_token = create_access_token(data=jwt_data)
             return SubmitFormResponse(
                 message=result["message"],

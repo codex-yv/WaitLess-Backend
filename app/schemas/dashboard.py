@@ -13,3 +13,15 @@ class CoordinatorRequest(BaseModel):
 class CoordinatorResponse(BaseModel):
     status:bool
     message:str
+
+class ShowCoordinatorResponse(BaseModel):
+    status:bool
+    message:str
+    data:Dict
+
+class DeleteCoordinatorResponse(BaseModel):
+    message:str
+    status:bool
+
+class DeleteCoordinatorRequest(BaseModel):
+    email:str

@@ -13,7 +13,7 @@ async def db_valid_user(data:LoginRequest)-> dict:
         if data.email in admins:
             admin = db[data.email]
             admin_data = await admin.find({},{"_id":1, "password":1}).to_list(None)
-            print(admin_data)
+            # print(admin_data)
             if admin_data[0]["password"] == data.password:
                 return {
                     "message":"Login Successful",
