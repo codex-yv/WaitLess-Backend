@@ -145,3 +145,20 @@ async def db_cancel_registration(client_id:str, form_id:str):
             "status":False
         }
 
+async def db_done_missed(client_id:str, form_id:str):
+    try:
+        db = database["Submissions"]
+        collection = db[form_id]
+        await collection.update_one(
+            {"client_id":client_id},
+            {"$set":{"missed":True}}
+        )
+        return {
+            "message":"Registration marked as missed successfully",
+            "status":True
+        }
+    except Exception as e:
+        return {
+            "message":f"Operation Failed due to:{e}",
+            "status":False
+        }

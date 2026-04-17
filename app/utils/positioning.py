@@ -1,9 +1,12 @@
+from unittest import skip
 from app.database.forms import db_get_all_submissions
 from datetime import datetime
 
 async def get_current_stats(client_id:str, form_id:str):
     result = await db_get_all_submissions(form_id)
     if result:
+        skipped = False
+        cancelled = False
         your_spot = 1
         current_pos = 0
         timing = []
@@ -25,6 +28,8 @@ async def get_current_stats(client_id:str, form_id:str):
 
             if client["client_id"] == client_id:
                 notification = client["notifications"]
+                skipped = client["skipped"]
+                cancelled = client["cancelled"]
 
         n = len(timing)
         expected_time = 0
@@ -41,9 +46,9 @@ async def get_current_stats(client_id:str, form_id:str):
 
             avg_time = sum(time_diff)//len(time_diff)    
 
-            expected_time = avg_time * your_spot
+            expected_time = avg_time * abs(your_spot-current_pos)
         
-        return your_spot, current_pos, expected_time, notification, template
+        return your_spot, current_pos, expected_time, notification, template, skipped, cancelled
 
     else:
-        return 0, 0, 0, []
+        return 0, 0, 0, [], [], False, False

@@ -1,7 +1,7 @@
 from bson import ObjectId
 from config.environment import database
 from app.schemas.forms import CreateFormRequest,SubmitFormRequest 
-from app.utils.helpers import get_ist_date, is_time_expired
+from app.utils.helpers import get_ist_date, is_time_expired, get_ist_time
 
 async def db_get_forms(admin_id:str):
     try:
@@ -95,6 +95,7 @@ async def db_create_form(admin_id:str, form_params:CreateFormRequest):
             "opens":form_params.opens_at,
             "closes":form_params.closes_at,
             "date": get_ist_date(),
+            "started":False,
             "total_scans":0
         }
         
@@ -122,10 +123,12 @@ async def db_submit_client_form(data:SubmitFormRequest, client_id:str):
         form_format = {
             "client_id":client_id,
             "params_val":data.params_val,
+            "submitted_at":get_ist_time(),
             "checked":False,
             "checked_time":None,
             "skipped":False,
             "cancelled":False,
+            "missed":False,
             "notifications":[]
         }
 

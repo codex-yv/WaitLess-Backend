@@ -1,4 +1,5 @@
 from config.environment import database
+from bson import ObjectId
 
 async def utils_db_get_token(email:str) -> str:
     db = database["Admins"]
@@ -18,3 +19,16 @@ async def utils_db_create_coordinators(token:str, email, admin_id):
     }
 
     await collection.insert_one(data)
+
+async def utils_db_get_form_activated(form_id: str):
+    db = database["Forms"]
+    collection = db["forms"]
+
+    form = await collection.find_one({"_id": ObjectId(form_id)})
+    return form["started"]
+
+async def utils_db_update_form_activated(form_id:str):
+    db = database["Forms"]
+    collection = db["forms"]
+
+    await collection.update_one({"_id": ObjectId(form_id)}, {"$set": {"started": True}})
