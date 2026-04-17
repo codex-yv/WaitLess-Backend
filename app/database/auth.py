@@ -114,3 +114,58 @@ async def db_verify_coordinator(data:CoordinatorLoginRequest):
             "status":False,
 
         }
+
+async def db_google_login(email: str) -> dict:
+    try:
+        db = database["Admins"]
+        admins = await db.list_collection_names()
+
+        if email in admins:
+            # User exists, login
+            admin = db[email]
+            admin_data = await admin.find({},{"_id":1}).to_list(None)
+            return {
+                "message": "Login Successful",
+                "status": True,
+                "id": str(admin_data[0]["_id"]),
+            }
+        else:
+            return {
+                "message": "Account does not exist! Please sign up first.",
+                "status": False,
+                "id": None
+            }
+    except Exception as e:
+        return {
+            "message": f"Unable to login: {e}",
+            "status": False,
+            "id": None,
+        }
+
+async def db_google_verify(email: str, name: str) -> dict:
+    try:
+        db = database["Admins"]
+        admins = await db.list_collection_names()
+
+        if email in admins:
+            return {
+                "message": "Email already exists!",
+                "status": False,
+                "exists": True,
+                "email": email,
+                "name": name
+            }
+        else:
+            return {
+                "message": "Google account verified. Please complete signup.",
+                "status": True,
+                "exists": False,
+                "email": email,
+                "name": name
+            }
+    except Exception as e:
+        return {
+            "message": f"Unable to verify: {e}",
+            "status": False,
+            "exists": False
+        }
