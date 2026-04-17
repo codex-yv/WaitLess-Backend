@@ -32,3 +32,15 @@ async def utils_db_update_form_activated(form_id:str):
     collection = db["forms"]
 
     await collection.update_one({"_id": ObjectId(form_id)}, {"$set": {"started": True}})
+
+async def utils_db_get_admin_id_from_form_id(form_id:str):
+    try:
+        db = database["Forms"]
+        collection = db["forms"]
+
+        result = await collection.find_one({"_id": ObjectId(form_id)})
+        return result["admin_id"]
+    except Exception as e:
+        print("Error in utils_db_get_admin_id_from_form_id:")
+        print(e)
+        return None

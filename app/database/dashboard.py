@@ -9,6 +9,7 @@ async def db_create_analytics(admin_id:str):
         "admin_id":admin_id,
         "total":0,
         "skipped":0,
+        "checked":0,
         "removed":0,
         "canceled":0
     }
@@ -23,11 +24,17 @@ async def db_get_dashboard_stats(admin_id) -> dict:
         dashboard = db["Dashboard"]
 
         result = await dashboard.find_one({"admin_id":admin_id},{"_id":0})
+        data = {
+            "total": result["total"],
+            "checked": result["checked"],
+            "waiting": result["total"] - (result["checked"] + result["canceled"]),
+            "canceled": result["canceled"]
+        }
         if result:
             return {
-                "message":"Admin Dashboard data not found!",
+                "message":"Admin Dashboard data fetched!",
                 "status":True,
-                "data":result
+                "data":data
             }
         else:
             return {
@@ -160,5 +167,25 @@ async def db_done_missed(client_id:str, form_id:str):
     except Exception as e:
         return {
             "message":f"Operation Failed due to:{e}",
+            "status":False
+        }
+
+async def db_update_analytics(admin_id:str, field:str):
+    try:
+        db = database["Analytics"]
+        dashboard = db["Dashboard"]
+        
+        await dashboard.update_one(
+            {"admin_id":admin_id},
+            {"$inc":{field:1}}
+        )
+        return {
+            "message":"Analytics updated successfully",
+            "status":True
+        }
+    except Exception as e:
+        print(e)
+        return {
+            "message":f"Action was successful but dashboard update failed due to:{e}",
             "status":False
         }

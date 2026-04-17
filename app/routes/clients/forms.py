@@ -1,6 +1,9 @@
+from turtle import update
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.utils.security import verify_request, create_admin_token, create_access_token
 from app.utils.positioning import get_current_stats
+from app.utils.database import utils_db_get_admin_id_from_form_id
+from app.database.dashboard import db_update_analytics
 from app.database.forms import db_get_form_by_id, db_submit_client_form
 from app.schemas.forms import FormsResponse, SubmitFormRequest, SubmitFormResponse
 from app.schemas.errors import ErrorResponse
@@ -58,6 +61,10 @@ async def submit_client_form(data:SubmitFormRequest):
         if result["status"]:
             jwt_data = {"user_data":{"client_id":client_id, "form_id":data.form_id}}
             access_token = create_access_token(data=jwt_data)
+            admin_id = await utils_db_get_admin_id_from_form_id(data.form_id)
+            if admin_id:
+                # update analytics
+                update_result = await db_update_analytics(admin_id = admin_id, field="total")
             return SubmitFormResponse(
                 message=result["message"],
                 error=result["error"],

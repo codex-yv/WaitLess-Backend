@@ -4,6 +4,7 @@ from app.schemas.tracking import LiveTrackingResponse, NextCustomerRequest, Next
 from app.schemas.errors import ErrorResponse
 
 from app.database.tracking import db_get_live_tracking, db_next_customer, db_skip_customer, db_cancel_customer
+from app.database.dashboard import db_update_analytics
 
 router = APIRouter(prefix="/api/admin/tracking", tags=["Tracking"])
 
@@ -32,10 +33,16 @@ async def get_live_tracking(form_id: str, jwt_data:dict = Depends(verify_request
             responses={code:{"model":ErrorResponse} for code in [500, 401]})
 async def next_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verify_request)):
     try:
+        admin_id = jwt_data["id"]
         result = await db_next_customer(form_id=data.form_id, client_id=data.client_id)
+
+        update_result = await db_update_analytics(admin_id=admin_id, field="checked")
+        if update_result["status"] == False and result["status"] == True:
+            result["message"] = update_result["message"]
+
         return NextCustomerResponse(**result)
     except Exception as e:
-        print(e)
+        # print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorResponse(
@@ -51,6 +58,9 @@ async def next_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verif
 async def skip_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verify_request)):
     try:
         result = await db_skip_customer(form_id=data.form_id, client_id=data.client_id)
+        update_result = await db_update_analytics(admin_id=jwt_data["id"], field="skipped")
+        if update_result["status"] == False and result["status"] == True:
+            result["message"] = update_result["message"]
         return NextCustomerResponse(**result)
     except Exception as e:
         print(e)
@@ -69,6 +79,9 @@ async def skip_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verif
 async def cancel_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verify_request)):
     try:
         result = await db_cancel_customer(form_id=data.form_id, client_id=data.client_id)
+        update_result = await db_update_analytics(admin_id=jwt_data["id"], field="canceled")
+        if update_result["status"] == False and result["status"] == True:
+            result["message"] = update_result["message"]
         return NextCustomerResponse(**result)
     except Exception as e:
         print(e)
