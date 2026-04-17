@@ -10,3 +10,4 @@ database = AsyncIOMotorClient(os.getenv("MONGO_URI"))
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+ALLOWED_ORIGINS = [os.getenv("ALLOWED_ORIGIN1"), os.getenv("ALLOWED_ORIGIN2")]

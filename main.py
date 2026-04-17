@@ -13,14 +13,14 @@ from app.routes.clients.dashboard import router as client_dashboard
 from app.routes.clients.forms import router as client_form
 
 from communication.RTC import rtc
-
+from config.environment import ALLOWED_ORIGINS
 
 app = FastAPI()
 
 # Configure CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
