@@ -1,4 +1,3 @@
-from turtle import update
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.utils.security import verify_request, create_admin_token, create_access_token
 from app.utils.positioning import get_current_stats
