@@ -4,6 +4,7 @@ from app.utils.positioning import get_current_stats
 from app.database.dashboard import db_cancel_registration, db_done_missed, db_update_analytics
 from app.utils.database import utils_db_get_admin_id_from_form_id
 
+from communication.RTC import rtc
 router = APIRouter(prefix="/api/client/dashboard", tags=["Client Dashboard"])
 
 @router.get("/")
@@ -43,6 +44,11 @@ async def cancel_registration(jwt_data:dict = Depends(verify_request)):
         admin_id = await utils_db_get_admin_id_from_form_id(form_id)
         if admin_id:
             update_result = await db_update_analytics(admin_id=admin_id, field="canceled")
+        
+        # Real-time updates: update admin's live queue & dashboard + all waiting clients' positions
+        await rtc.submitCancelAppointment(admin_id=admin_id, client_id=client_id, form_id=form_id)
+        await rtc.broadcastQueueUpdate(form_id=form_id)
+
         return result
     except Exception as e:
         raise HTTPException(

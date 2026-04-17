@@ -20,6 +20,7 @@ async def login(response:Response, data:LoginRequest):
             return LoginResponse(
                 message=result["message"],
                 status=result["status"],
+                admin_id=result["id"],
                 access_token=access_token,
                 token_type="bearer"
             )
@@ -27,10 +28,12 @@ async def login(response:Response, data:LoginRequest):
             return LoginResponse(
                 message=result["message"],
                 status=result["status"],
+                admin_id=None,
                 access_token=None,
                 token_type=None
             )
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorResponse(
@@ -51,6 +54,7 @@ async def signup(response:Response, data:SignupRequest):
             return SignupResponse(
                 message=result["message"],
                 status=result["status"],
+                admin_id=result["id"],
                 access_token=access_token,
                 token_type="bearer"
             )
@@ -58,6 +62,7 @@ async def signup(response:Response, data:SignupRequest):
             return SignupResponse(
                 message=result["message"],
                 status=result["status"],
+                admin_id=None,
                 access_token=None,
                 token_type=None
             )

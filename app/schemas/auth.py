@@ -7,6 +7,7 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     message:str
     status:bool
+    admin_id:Union[str, None]
     access_token:Union[str, None]
     token_type:Union[str, None]
 
@@ -20,6 +21,7 @@ class SignupRequest(BaseModel):
 class SignupResponse(BaseModel):
     message:str
     status:bool
+    admin_id:Union[str, None]
     access_token:Union[str, None]
     token_type:Union[str, None]
 

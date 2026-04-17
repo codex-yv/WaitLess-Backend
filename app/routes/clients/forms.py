@@ -9,6 +9,8 @@ from app.schemas.forms import FormsResponse, SubmitFormRequest, SubmitFormRespon
 from app.schemas.errors import ErrorResponse
 from typing import Union
 
+from communication.RTC import rtc
+
 router = APIRouter(prefix="/api/forms", tags=["Client forms"])
 
 # api to get form when user scans a QR
@@ -19,6 +21,10 @@ router = APIRouter(prefix="/api/forms", tags=["Client forms"])
 async def get_scanned_form(form_id:str):
     try:
         result = await db_get_form_by_id(form_id)
+        admin_id = await utils_db_get_admin_id_from_form_id(form_id=form_id)
+        if admin_id:
+            await rtc.scanFormUpdate(admin_id=admin_id, form_id=form_id)
+            
         return FormsResponse(**result)
     except Exception as e:
         raise HTTPException(
@@ -65,10 +71,14 @@ async def submit_client_form(data:SubmitFormRequest):
             if admin_id:
                 # update analytics
                 update_result = await db_update_analytics(admin_id = admin_id, field="total")
+            
+            await rtc.submitFormToAdmin(admin_id=admin_id, form_id=data.form_id, data=data.params_val) # added rtc
+            
             return SubmitFormResponse(
                 message=result["message"],
                 error=result["error"],
                 status=result["status"],
+                client_id=client_id,
                 access_token=access_token,
                 token_type="bearer"
             )
@@ -77,6 +87,7 @@ async def submit_client_form(data:SubmitFormRequest):
                 message=result["message"],
                 error=result["error"],
                 status=result["status"],
+                client_id=client_id,
                 access_token=None,
                 token_type=None
             )
