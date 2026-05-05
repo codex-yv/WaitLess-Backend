@@ -10,6 +10,7 @@ from config.environment import GOOGLE_CLIENT_ID
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from pydantic import BaseModel
+import requests
 
 class GoogleTokenRequest(BaseModel):
     token: str
@@ -28,6 +29,8 @@ async def login(response:Response, data:LoginRequest):
             return LoginResponse(
                 message=result["message"],
                 status=result["status"],
+                email=result["email"],
+                picture=result["profile_picture"],
                 admin_id=result["id"],
                 access_token=access_token,
                 token_type="bearer"
@@ -36,6 +39,8 @@ async def login(response:Response, data:LoginRequest):
             return LoginResponse(
                 message=result["message"],
                 status=result["status"],
+                email=None,
+                picture=None,
                 admin_id=None,
                 access_token=None,
                 token_type=None
@@ -63,6 +68,8 @@ async def signup(response:Response, data:SignupRequest):
                 message=result["message"],
                 status=result["status"],
                 admin_id=result["id"],
+                email= result["email"], # this email is not being accessed via db
+                picture=result["picture"], # this picture is not being accessed from db
                 access_token=access_token,
                 token_type="bearer"
             )
@@ -71,6 +78,8 @@ async def signup(response:Response, data:SignupRequest):
                 message=result["message"],
                 status=result["status"],
                 admin_id=None,
+                email= None, # this email is not being accessed via db
+                picture= None, # this picture is not being accessed from db
                 access_token=None,
                 token_type=None
             )
@@ -117,7 +126,6 @@ async def coordinator_login(data:CoordinatorLoginRequest):
             )
         )
 
-import requests
 
 class GoogleVerifyResponse(BaseModel):
     message: str
@@ -125,6 +133,7 @@ class GoogleVerifyResponse(BaseModel):
     exists: bool
     email: str | None = None
     name: str | None = None
+    picture: str | None = None
 
 @router.post("/google/login", response_model=LoginResponse)
 async def google_login_route(data: GoogleTokenRequest):
@@ -136,6 +145,7 @@ async def google_login_route(data: GoogleTokenRequest):
             raise ValueError("Invalid Token")
 
         id_info = response.json()
+        # print(id_info)
         email = id_info.get("email")
         
         # Look up user in Database
@@ -150,16 +160,20 @@ async def google_login_route(data: GoogleTokenRequest):
                 message=result["message"],
                 status=True,
                 admin_id=result["id"],
+                email= id_info.get("email"),
+                picture=id_info.get("picture"), # getting profile picture pf email from the google auth
                 access_token=access_token,
                 token_type="bearer"
             )
         else:
              return LoginResponse(
-                 message=result["message"], 
-                 status=False,
-                 admin_id=None,
-                 access_token=None,
-                 token_type=None
+                message=result["message"], 
+                status=False,
+                admin_id=None,
+                email= None,
+                picture=None,
+                access_token=None,
+                token_type=None
             )
              
     except Exception as e:
@@ -183,7 +197,8 @@ async def google_verify_route(data: GoogleTokenRequest):
             status=result["status"],
             exists=result["exists"],
             email=result.get("email"),
-            name=result.get("name")
-        )
+            name=result.get("name"),
+            picture=id_info.get("picture"), # getting profile picture pf email from the google auth
+        )   
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid Google token")

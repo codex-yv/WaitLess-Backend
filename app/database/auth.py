@@ -12,25 +12,35 @@ async def db_valid_user(data:LoginRequest)-> dict:
 
         if data.email in admins:
             admin = db[data.email]
-            admin_data = await admin.find({},{"_id":1, "password":1}).to_list(None)
+            admin_data = await admin.find({}).to_list(None)
             # print(admin_data)
+            try:
+                picture = admin_data[0]["profile_picture"]
+            except KeyError:
+                picture = None
             if admin_data[0]["password"] == data.password:
                 return {
                     "message":"Login Successful",
                     "status":True,
                     "id":str(admin_data[0]["_id"]),
+                    "email":data.email,
+                    "profile_picture":picture
                 }
             else:
                 return {
                     "message":"Wrong password!",
                     "status":False,
                     "id":None,
+                    "email":None,
+                    "profile_picture":None
                 }
         else:
             return {
                 "message":"Email does not exist!",
                 "status":False,
                 "id":None,
+                "email":None,
+                "profile_picture":None
             }
     except Exception as e:
          return {
@@ -57,7 +67,11 @@ async def db_create_user(data:SignupRequest)-> dict:
                 "user_name":data.name,
                 "email":data.email,
                 "password":data.password,
+                "profile_picture":data.picture,
                 "occupation":data.occupation,
+                "org_type":data.org_type,
+                "org_name":data.org_name,
+                "address": data.address,
                 "token":token
             }
             result = await admin.insert_one(admin_data)
@@ -68,12 +82,16 @@ async def db_create_user(data:SignupRequest)-> dict:
             return {
                 "message":"User created successfully!",
                 "status":True,
+                "email":data.email,
+                "picture":data.picture,
                 "id": str(result.inserted_id)
             }
     except Exception as e:
         return {
             "message":f"Unable to create:{e}",
             "status":False,
+            "email":None,
+            "picture":None,
             "id":None,
         }
     
