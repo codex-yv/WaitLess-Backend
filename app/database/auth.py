@@ -14,10 +14,14 @@ async def db_valid_user(data:LoginRequest)-> dict:
             admin = db[data.email]
             admin_data = await admin.find({}).to_list(None)
             # print(admin_data)
+
+            # trying to fetch profile image if exist
             try:
                 picture = admin_data[0]["profile_picture"]
             except KeyError:
                 picture = None
+
+            # authenticating the password
             if admin_data[0]["password"] == data.password:
                 return {
                     "message":"Login Successful",

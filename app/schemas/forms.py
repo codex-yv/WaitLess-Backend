@@ -11,6 +11,7 @@ class FormsResponse(BaseModel):
 class CreateFormRequest(BaseModel):
     form_params:List[Dict]
     title:str
+    counter:str
     opens_at:str
     closes_at:str
 

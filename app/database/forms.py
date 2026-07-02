@@ -16,7 +16,7 @@ async def db_get_forms(admin_id:str):
                 document["_id"] = str(document["_id"])  # convert ObjectId to string if needed
                 document["expired"] = is_time_expired(document["closes"])
                 results.append(document)
-
+            
             return {
                 "message":"forms found!",
                 "error":None,
