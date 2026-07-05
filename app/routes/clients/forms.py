@@ -23,7 +23,7 @@ async def get_scanned_form(form_id:str):
         admin_id = await utils_db_get_admin_id_from_form_id(form_id=form_id)
         if admin_id:
             await rtc.scanFormUpdate(admin_id=admin_id, form_id=form_id)
-            
+        print(result)
         return FormsResponse(**result)
     except Exception as e:
         raise HTTPException(
@@ -38,7 +38,7 @@ async def get_scanned_form(form_id:str):
 @router.get("/exist")
 async def get_scanned_form2(jwt_data:dict = Depends(verify_request)):
     try:
-        ys, cp, et, notify, temp = await get_current_stats(client_id=jwt_data["client_id"], form_id=jwt_data["form_id"])
+        ys, cp, et, notify, temp,skipped, cancelled = await get_current_stats(client_id=jwt_data["client_id"], form_id=jwt_data["form_id"])
         # if the returned values are 0 then show some specific message
         return {
             "message":"You have already registered!",
@@ -50,6 +50,7 @@ async def get_scanned_form2(jwt_data:dict = Depends(verify_request)):
             "notification":notify
             }
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=500, 
             detail=f"Error Due to:{e}"

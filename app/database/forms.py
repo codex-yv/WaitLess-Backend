@@ -52,7 +52,7 @@ async def db_get_form_by_id(form_id:str):
             )
             forms[0]["_id"] = str(forms[0]["_id"])
             # print(is_time_expired(forms[0]["closes"]))
-            if not is_time_expired(forms[0]["closes"]):
+            if not is_time_expired(forms[0]["closes"], forms[0]["date"]):
                 return {
                     "message":"Form found!",
                     "data":forms,
