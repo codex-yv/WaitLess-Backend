@@ -151,3 +151,27 @@ async def db_get_all_submissions(form_id:str):
         collection = db[form_id]
         result = await collection.find({}).to_list(length=None)
         return result
+
+
+# <----------- Remove the below function if not in use ------------->
+
+async def db_get_current_stats(form_id:str, client_id:str):
+    db = database["Submission"]
+    collections = db[form_id]
+
+    submissions = await collections.find({}).to_list(length=None)
+
+    turn = 0
+    position = 1
+    for submission in submissions:
+        if submission["checked"] or submission["skipped"]:
+            turn +=1
+    
+    for submission in submissions:
+        if not submission["cancelled"]:
+            if submission["client_id"] != client_id:
+                position+=1
+            else:
+                break
+
+    return turn, position

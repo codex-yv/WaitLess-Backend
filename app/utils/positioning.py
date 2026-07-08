@@ -1,6 +1,119 @@
 from unittest import skip
-from app.database.forms import db_get_all_submissions
+from app.database.forms import db_get_all_submissions #db_get_current_stats
 from datetime import datetime
+
+
+class Queue:
+    def __init__(self):
+        # temporary storage for form-wise submission
+        # format : {form_id:{"current_turn": xxx, "peoples":{client_id: yyy}}}
+        self.queue_data = {} 
+
+        # temporary storage for skipped submissions
+        # format: [client_id]
+        self.skipped = []
+
+    async def populateQueue(self, form_id:str):
+    
+        # populates the form-wise submissions for a given form_id
+
+        submissions = await db_get_all_submissions(form_id)
+
+        # calculating current_turn
+        turn = 0
+        for submission in submissions:
+            if submission["checked"] or submission["skipped"]:
+                turn +=1
+
+
+        self.queue_data[form_id] = {"current_turn": turn, "peoples":{}}
+        
+        # calculating current_pos
+        pos = 1
+        for submission in submissions:
+            if not submission["cancelled"]:
+                self.queue_data[form_id]["peoples"][submission["client_id"]] = pos
+                pos+=1
+        
+
+    async def addNewPerson(self, form_id: str, client_id: str):
+        # adds new person/submission in queue_data
+
+        if form_id in self.queue_data:
+            # calculating position of newly added person
+            pos = 1
+            for people in self.queue_data[form_id]["peoples"]:
+                pos+=1
+
+            self.queue_data[form_id]["peoples"][client_id] = pos
+        else:
+            # populating the queue_data if form_id doesn't exist.
+            await self.populateQueue(form_id)
+
+    async def cancelRegistration(self,form_id:str, client_id:str):
+        # cancelled submission is removed from queue_data
+
+        if form_id in self.queue_data:
+            # calculating position of submission after cancellation
+            decrement = False
+            for people in self.queue_data[form_id]["peoples"]:
+                if decrement:
+                    self.queue_data[form_id]["peoples"][people] -= 1
+
+                if people == client_id:
+                    decrement = True
+                    
+            # removing client from submission
+            del self.queue_data[form_id]["peoples"][client_id]
+        else:
+            await self.populateQueue(form_id)
+
+    async def callNext(self, form_id):
+        if form_id in self.queue_data:
+            self.queue_data[form_id]["current_turn"] +=1
+        else:
+            await self.populateQueue(form_id)
+
+    async def skipNext(self, client_id:str, form_id:str):
+        if form_id in self.queue_data:
+            self.queue_data[form_id]["current_turn"] +=1
+            self.skipped.append(client_id)
+        else:
+            await self.populateQueue(form_id)
+
+    async def undoSkip(self, form_id, client_id:str):
+        if form_id in self.queue_data:
+            self.queue_data[form_id]["current_turn"] -=1
+            self.skipped.remove(client_id)
+        else:
+            await self.populateQueue(form_id)
+
+    async def getQueueStats(self, form_id:str, client_id:str):
+        if form_id in self.queue_data:
+            try:
+                info = {
+                    "current_turn":self.queue_data[form_id]["current_turn"],
+                    "current_pos": self.queue_data[form_id]["peoples"][client_id],
+                    "skipped":client_id in self.skipped
+                } 
+            except KeyError as e:
+                # it means cancelled
+                print(e)
+                info = {
+                    "current_turn": None,
+                    "current_pos": None,
+                    "skipped": False
+                }
+            finally:
+                return info
+            
+        else:
+            await self.populateQueue(form_id)
+            return await self.getQueueStats(form_id, client_id)
+    
+QUEUE = Queue()
+
+# <--------------- Replace the use of below function from above classe ---------------->
 
 async def get_current_stats(client_id:str, form_id:str):
     result = await db_get_all_submissions(form_id)
