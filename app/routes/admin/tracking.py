@@ -5,7 +5,7 @@ from app.schemas.errors import ErrorResponse
 
 from app.database.tracking import db_get_live_tracking, db_next_customer, db_skip_customer, db_cancel_customer
 from app.database.dashboard import db_update_analytics
-
+from app.utils.positioning import QUEUE
 from communication.RTC import rtc
 
 router = APIRouter(prefix="/api/admin/tracking", tags=["Tracking"])
@@ -42,9 +42,12 @@ async def next_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verif
         if update_result["status"] == False and result["status"] == True:
             result["message"] = update_result["message"]
 
+        await QUEUE.callNext(form_id = data.form_id )
+        
         # Real-time updates: update all waiting clients' positions + admin's live queue & dashboard
         await rtc.broadcastQueueUpdate(form_id=data.form_id)
         await rtc.submitFormToAdmin(admin_id=admin_id, form_id=data.form_id, data=[])
+        
 
         return NextCustomerResponse(**result)
     except Exception as e:
@@ -68,10 +71,13 @@ async def skip_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verif
         if update_result["status"] == False and result["status"] == True:
             result["message"] = update_result["message"]
 
+        await QUEUE.skipNext(client_id = data.client_id, form_id = data.form_id)
+
         # Real-time updates: notify skipped client + update all waiting clients' positions + admin
         await rtc.sendSkipByAdmin(client_id=data.client_id)
         await rtc.broadcastQueueUpdate(form_id=data.form_id)
         await rtc.submitFormToAdmin(admin_id=jwt_data["id"], form_id=data.form_id, data=[])
+        
 
         return NextCustomerResponse(**result)
     except Exception as e:
@@ -94,6 +100,8 @@ async def cancel_customer(data: NextCustomerRequest, jwt_data:dict = Depends(ver
         update_result = await db_update_analytics(admin_id=jwt_data["id"], field="canceled")
         if update_result["status"] == False and result["status"] == True:
             result["message"] = update_result["message"]
+
+        await QUEUE.cancelRegistration(form_id = data.form_id, client_id = data.client_id)
         
         # Real-time updates: notify cancelled client + update all waiting clients' positions + admin
         await rtc.sendCancelbyAdmin(client_id=data.client_id)

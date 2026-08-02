@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.utils.security import verify_request
-from app.utils.positioning import get_current_stats
+from app.utils.positioning import get_current_stats, QUEUE
 from app.database.dashboard import db_cancel_registration, db_done_missed, db_update_analytics
 from app.utils.database import utils_db_get_admin_id_from_form_id
 
@@ -14,21 +14,21 @@ async def get_client_dashboard(jwt_data:dict = Depends(verify_request)):
     # print("Client ID:", client_id)
     # print("Form ID:", form_id)
     try:
-        ys, cp, et, notify, temp, skipped, cancelled = await get_current_stats(client_id=client_id, form_id=form_id)
-        # if the returned values are 0 then show some specific message
-        data = {
+        data = QUEUE.getQueueStats(form_id = form_id, client_id = client_id)
+        # ys, cp, et, notify, temp, skipped, cancelled = await get_current_stats(client_id=client_id, form_id=form_id)
+        # # if the returned values are 0 then show some specific message
+        return {
             "message": "You have already registered!",
             "status": True,
-            "template": temp,
-            "your_spot": ys,
-            "current_pos": cp,
-            "extpected_time": et,
-            "noification": notify,
-            "skipped": skipped,
-            "cancelled": cancelled,
+            # "template": temp,
+            "your_spot": data["current_pos"],
+            "current_pos": data["current_turn"],
+            # "extpected_time": et,
+            # "noification": notify,
+            "skipped": data["skipped"],
+            "cancelled": data["current_pos"] and data["current_turn"],
         }
         # print(data)
-        return data
     except Exception as e:
         raise HTTPException(
             status_code=500, 
@@ -44,7 +44,8 @@ async def cancel_registration(jwt_data:dict = Depends(verify_request)):
         admin_id = await utils_db_get_admin_id_from_form_id(form_id)
         if admin_id:
             update_result = await db_update_analytics(admin_id=admin_id, field="canceled")
-        
+
+        await QUEUE.cancelRegistration(form_id = form_id, client_id = client_id)
         # Real-time updates: update admin's live queue & dashboard + all waiting clients' positions
         await rtc.submitCancelAppointment(admin_id=admin_id, client_id=client_id, form_id=form_id)
         await rtc.broadcastQueueUpdate(form_id=form_id)

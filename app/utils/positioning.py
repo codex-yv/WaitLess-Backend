@@ -88,12 +88,12 @@ class Queue:
         else:
             await self.populateQueue(form_id)
 
-    async def getQueueStats(self, form_id:str, client_id:str):
+    async def getQueueStats(self, form_id:str, client_id:str) -> dict:
         if form_id in self.queue_data:
             try:
                 info = {
                     "current_turn":self.queue_data[form_id]["current_turn"],
-                    "current_pos": self.queue_data[form_id]["peoples"][client_id],
+                    "current_pos": self.queue_data[form_id]["peoples"][client_id], # it will generate key error when if booking is cancelled.
                     "skipped":client_id in self.skipped
                 } 
             except KeyError as e:
@@ -110,6 +110,9 @@ class Queue:
         else:
             await self.populateQueue(form_id)
             return await self.getQueueStats(form_id, client_id)
+        
+    def getQueueStatsAll(self, form_id: str):
+        return self.queue_data[form_id]
     
 QUEUE = Queue()
 
