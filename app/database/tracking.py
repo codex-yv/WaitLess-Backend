@@ -1,5 +1,5 @@
 from config.environment import database
-from app.utils.helpers import get_ist_time
+from app.utils.helpers import get_ist_time, Previous, instance
 from app.utils.database import utils_db_get_form_activated, utils_db_update_form_activated
 
 async def db_get_live_tracking(form_id: str):
@@ -11,6 +11,11 @@ async def db_get_live_tracking(form_id: str):
         result =[]
         for submission in submissions:
             submission["_id"] = str(submission["_id"])
+            try:
+                check = submission["serving"]
+            except KeyError:
+                submission["serving"] = False
+
             result.append(submission)
         started = await utils_db_get_form_activated(form_id)
         return {
@@ -36,16 +41,40 @@ async def db_next_customer(form_id: str, client_id: str):
 
         await collections.update_one(
             {"client_id": client_id},
-            {"$set": {"checked": True, "checked_time": get_ist_time()}}
+            {"$set": {"checked": True, "checked_time": get_ist_time(), "serving":True}}
         )
+
+        print("CLIENT_ID: ", client_id)
+
+        obj = instance.getInstance(form_id)
+
+        # checking if there is any instance for form_id
+        if obj:
+            # performing operations on the instance
+            if obj.getPrevData():
+                await collections.update_one(
+                    {"client_id": obj.getPrevData()},
+                    {"$set": {"serving":False}}
+                )
+
+            # adding the current client as previous
+            obj.addPrevData(client_id)
+        else:
+            # creating instance if not exist.
+            previous = Previous()
+            previous.addPrevData(client_id)
+            instance.addInstance(form_id, previous)
+
         return {
             "message": "Next customer updated successfully",
             "started": started,
             "status":True
         }
     except Exception as e:
+        print(e)
         return {
             "message": f"Failed to update next customer: {str(e)}",
+            "started": started,
             "status":False
         }
 

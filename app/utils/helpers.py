@@ -1,5 +1,35 @@
 from datetime import datetime
 import pytz
+from typing import Union
+
+
+
+class Instance:
+    def __init__(self):
+        self.instances = {}
+
+    def addInstance(self, form_id: str, instance: object) -> None:
+        self.instances[form_id] = instance
+
+    def getInstance(self, form_id: str) -> Union[object, None]:
+        if form_id in self.instances:
+            return self.instances[form_id]
+        return None
+
+instance = Instance()
+
+
+class Previous:
+    def __init__(self):
+        self.collection = [None]
+
+    def addPrevData(self, client_id: str) -> None:
+        self.collection[0] = client_id
+
+    def getPrevData(self) -> Union[str, None]:
+        if self.collection:
+            return self.collection[0]
+        return None
 
 def get_ist_date():
     ist = pytz.timezone('Asia/Kolkata')

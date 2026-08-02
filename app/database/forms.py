@@ -16,11 +16,11 @@ async def db_get_forms(admin_id:str):
                 document["_id"] = str(document["_id"])  # convert ObjectId to string if needed
                 document["expired"] = is_time_expired(document["closes"], document["date"])
                 results.append(document)
-            print(results)
+            # print(results[::-1])
             return {
                 "message":"forms found!",
                 "error":None,
-                "data": results,
+                "data": results[::-1],
                 "status":True
             }
         else:
@@ -124,6 +124,7 @@ async def db_submit_client_form(data:SubmitFormRequest, client_id:str):
             "client_id":client_id,
             "params_val":data.params_val,
             "submitted_at":get_ist_time(),
+            "serving": False,
             "checked":False,
             "checked_time":None,
             "skipped":False,
