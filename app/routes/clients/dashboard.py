@@ -44,6 +44,7 @@ async def cancel_registration(jwt_data:dict = Depends(verify_request)):
         admin_id = await utils_db_get_admin_id_from_form_id(form_id)
         if admin_id:
             await analytics.db_inc_cancel(admin_id = admin_id)
+            await analytics.db_add_activity(admin_id = admin_id, activity = "cancel", info = f"Client #{client_id} cancelled appointment")
 
         await QUEUE.cancelRegistration(form_id = form_id, client_id = client_id)
         # Real-time updates: update admin's live queue & dashboard + all waiting clients' positions

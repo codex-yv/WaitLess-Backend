@@ -1,6 +1,7 @@
 from config.environment import database
 from app.utils.helpers import get_ist_time, Previous, instance
 from app.utils.database import utils_db_get_form_activated, utils_db_update_form_activated
+from app.database.dashboard import analytics
 
 async def db_get_live_tracking(form_id: str):
     try:
@@ -32,7 +33,7 @@ async def db_get_live_tracking(form_id: str):
             "data":None
         }
 
-async def db_next_customer(form_id: str, client_id: str):
+async def db_next_customer(form_id: str, client_id: str, admin_id: str):
     try:
         db = database["Submissions"] 
         collections = db[form_id]
@@ -56,6 +57,8 @@ async def db_next_customer(form_id: str, client_id: str):
                     {"client_id": obj.getPrevData()},
                     {"$set": {"serving":False}}
                 )
+                await analytics.db_inc_checked(admin_id)
+                await analytics.db_add_activity(admin_id = admin_id, activity = "complete", info = f"Client #{client_id} appointment completed")
 
             # adding the current client as previous
             obj.addPrevData(client_id)

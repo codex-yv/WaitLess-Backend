@@ -4,7 +4,13 @@ from typing import Union, Dict
 class DashboardResponse(BaseModel):
     status:bool
     message:str
-    data: Union[Dict[str, Union[int, str]], None]
+    data: Union[Dict[str, Union[int, str, list]], None]
+
+
+class DashboardActivityResponse(BaseModel):
+    status: bool
+    message: str
+    data: Union[list[dict], None]
 
 class CoordinatorRequest(BaseModel):
     name:str

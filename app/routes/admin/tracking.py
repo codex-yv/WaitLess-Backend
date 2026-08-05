@@ -36,9 +36,7 @@ async def get_live_tracking(form_id: str, jwt_data:dict = Depends(verify_request
 async def next_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verify_request)):
     try:
         admin_id = jwt_data["id"]
-        result = await db_next_customer(form_id=data.form_id, client_id=data.client_id)
-
-        await analytics.db_inc_checked(admin_id)
+        result = await db_next_customer(form_id=data.form_id, client_id=data.client_id, admin_id = admin_id)
 
         result["message"] = "Successful"
 
@@ -100,6 +98,8 @@ async def cancel_customer(data: NextCustomerRequest, jwt_data:dict = Depends(ver
         result = await db_cancel_customer(form_id=data.form_id, client_id=data.client_id)
 
         await analytics.db_inc_cancel(admin_id = jwt_data["id"])
+        await analytics.db_add_activity(admin_id = jwt_data["id"], activity = "cancel", info = f"Client #{data.client_id} appointment cancelled by admin.")
+
         result["message"] = "Successful" # remove this params from schema and update frontend accordingly
 
         await QUEUE.cancelRegistration(form_id = data.form_id, client_id = data.client_id)

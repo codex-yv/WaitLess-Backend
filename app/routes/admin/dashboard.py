@@ -1,7 +1,8 @@
 from fastapi import APIRouter, status, HTTPException, Depends
 
-from app.database.dashboard import db_get_dashboard_stats, db_add_coordinator, db_show_coordinators, db_delete_coordinator
-from app.schemas.dashboard import DashboardResponse, CoordinatorRequest, CoordinatorResponse, ShowCoordinatorResponse, DeleteCoordinatorRequest, DeleteCoordinatorResponse
+from app.database.dashboard import db_get_dashboard_stats, db_add_coordinator, db_show_coordinators, db_delete_coordinator, db_get_recentActivity
+from app.schemas.dashboard import (DashboardResponse, CoordinatorRequest, CoordinatorResponse, ShowCoordinatorResponse, 
+                                   DeleteCoordinatorRequest, DeleteCoordinatorResponse, DashboardActivityResponse)
 from app.schemas.errors import ErrorResponse
 
 from app.utils.security import verify_request
@@ -34,6 +35,23 @@ async def dashboard(info:dict = Depends(verify_request)):
             ).model_dump()
         )
     
+@router.get("/activity",
+            response_model = DashboardActivityResponse,
+            responses = {code:{"model": ErrorResponse} for code in [500, 401]})
+async def get_recent_activity(jwt_info: dict = Depends(verify_request)):
+    try:
+        result = await db_get_recentActivity(admin_id = jwt_info["id"])
+        return DashboardActivityResponse(**result)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorResponse(
+                message="Unable to load recent activity.",
+                error=f"ERROR FOUND:{e}",
+                success=False
+            ).model_dump()
+        )
+
 
 @router.get("/show-coordinators",
             response_model=ShowCoordinatorResponse,

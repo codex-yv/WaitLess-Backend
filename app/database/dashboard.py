@@ -18,6 +18,7 @@ class DBAnalyticsOps:
             "skipped": 0,
             "removed": 0,
             "canceled": 0,
+            "activity": []
         }
         
         await self.dashboard.insert_one(data)
@@ -87,6 +88,16 @@ class DBAnalyticsOps:
                 {"$inc":{"removed":1}}
             )
 
+    async def db_add_activity(self, admin_id: str, activity: str, info: str) -> None:
+        data = {
+            "type": activity,
+            "info": info
+        }
+
+        await self.dashboard.update_one({"admin_id":admin_id, "date": get_ist_date()},
+                                        {"$push": {"activity": data}})
+        
+
 analytics = DBAnalyticsOps()
 
 
@@ -122,7 +133,8 @@ async def db_get_dashboard_stats(admin_id) -> dict:
                 "total": result["total"],
                 "checked": result["checked"],
                 "waiting": result["total"] - (result["checked"] + result["canceled"]),
-                "canceled": result["canceled"]
+                "canceled": result["canceled"],
+                "activity": result["activity"][::-1][:6]
             }
             return {
                 "message":"Admin Dashboard data fetched!",
@@ -149,6 +161,24 @@ async def db_get_dashboard_stats(admin_id) -> dict:
             "data":None
         }
     
+async def db_get_recentActivity(admin_id: str) -> dict:
+    db = database["Analytics"]
+    dashboard = db["Dashboard"]
+    result = await dashboard.find_one({"admin_id":admin_id, "date": get_ist_date()},{"_id":0})
+    if result:
+        data = {
+            "status": True,
+            "message": "Activity fetched successfully.",
+            "data": result["activity"][::-1]
+        }
+    else:
+        data = {
+            "status": True,
+            "message": "Activity fetched successfully.",
+            "data": []
+        }
+
+    return data
 
 async def db_show_coordinators(admin_email:str):
     try:
