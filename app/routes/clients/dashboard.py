@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.utils.security import verify_request
 from app.utils.positioning import get_current_stats, QUEUE
-from app.database.dashboard import db_cancel_registration, db_done_missed, db_update_analytics
+from app.database.dashboard import db_cancel_registration, db_done_missed, analytics
 from app.utils.database import utils_db_get_admin_id_from_form_id
 
 from communication.RTC import rtc
@@ -43,7 +43,7 @@ async def cancel_registration(jwt_data:dict = Depends(verify_request)):
         result = await db_cancel_registration(client_id=client_id, form_id=form_id)
         admin_id = await utils_db_get_admin_id_from_form_id(form_id)
         if admin_id:
-            update_result = await db_update_analytics(admin_id=admin_id, field="canceled")
+            await analytics.db_inc_cancel(admin_id = admin_id)
 
         await QUEUE.cancelRegistration(form_id = form_id, client_id = client_id)
         # Real-time updates: update admin's live queue & dashboard + all waiting clients' positions

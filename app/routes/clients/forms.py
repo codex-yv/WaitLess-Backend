@@ -3,7 +3,7 @@ from app.utils.security import verify_request, create_admin_token, create_access
 # from app.utils.positioning import get_current_stats
 from app.utils.positioning import QUEUE
 from app.utils.database import utils_db_get_admin_id_from_form_id
-from app.database.dashboard import db_update_analytics
+from app.database.dashboard import analytics
 from app.database.forms import db_get_form_by_id, db_submit_client_form
 from app.schemas.forms import FormsResponse, SubmitFormRequest, SubmitFormResponse
 from app.schemas.errors import ErrorResponse
@@ -43,6 +43,7 @@ async def get_scanned_form2(jwt_data:dict = Depends(verify_request)):#client_id:
         # ys, cp, et, notify, temp,skipped, cancelled = await get_current_stats(client_id=, form_id=jwt_data["form_id"])
         # if the returned values are 0 then show some specific message
         # print("<<<<< MESSAGE FROM QUEUE >>>>")
+        print(data["current_pos"])
         return {
             "message":"You have already registered!",
             "status":True,
@@ -72,8 +73,7 @@ async def submit_client_form(data:SubmitFormRequest):
             access_token = create_access_token(data=jwt_data)
             admin_id = await utils_db_get_admin_id_from_form_id(data.form_id)
             if admin_id:
-                # update analytics
-                update_result = await db_update_analytics(admin_id = admin_id, field="total")
+                await analytics.db_inc_total(admin_id = admin_id)
             
             await rtc.submitFormToAdmin(admin_id=admin_id, form_id=data.form_id, data=data.params_val) # added rtc
             await QUEUE.addNewPerson(form_id = data.form_id, client_id = client_id) # Queue implementation

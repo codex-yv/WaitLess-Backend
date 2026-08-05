@@ -4,7 +4,7 @@ from app.schemas.tracking import LiveTrackingResponse, NextCustomerRequest, Next
 from app.schemas.errors import ErrorResponse
 
 from app.database.tracking import db_get_live_tracking, db_next_customer, db_skip_customer, db_cancel_customer
-from app.database.dashboard import db_update_analytics
+from app.database.dashboard import analytics
 from app.utils.positioning import QUEUE
 from communication.RTC import rtc
 
@@ -38,9 +38,9 @@ async def next_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verif
         admin_id = jwt_data["id"]
         result = await db_next_customer(form_id=data.form_id, client_id=data.client_id)
 
-        update_result = await db_update_analytics(admin_id=admin_id, field="checked")
-        if update_result["status"] == False and result["status"] == True:
-            result["message"] = update_result["message"]
+        await analytics.db_inc_checked(admin_id)
+
+        result["message"] = "Successful"
 
         await QUEUE.callNext(form_id = data.form_id )
         
@@ -67,9 +67,10 @@ async def next_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verif
 async def skip_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verify_request)):
     try:
         result = await db_skip_customer(form_id=data.form_id, client_id=data.client_id)
-        update_result = await db_update_analytics(admin_id=jwt_data["id"], field="skipped")
-        if update_result["status"] == False and result["status"] == True:
-            result["message"] = update_result["message"]
+
+        await analytics.db_inc_skipped(admin_id = jwt_data['id'])
+
+        result["message"] = "Successful"
 
         await QUEUE.skipNext(client_id = data.client_id, form_id = data.form_id)
 
@@ -97,9 +98,9 @@ async def skip_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verif
 async def cancel_customer(data: NextCustomerRequest, jwt_data:dict = Depends(verify_request)):
     try:
         result = await db_cancel_customer(form_id=data.form_id, client_id=data.client_id)
-        update_result = await db_update_analytics(admin_id=jwt_data["id"], field="canceled")
-        if update_result["status"] == False and result["status"] == True:
-            result["message"] = update_result["message"]
+
+        await analytics.db_inc_cancel(admin_id = jwt_data["id"])
+        result["message"] = "Successful" # remove this params from schema and update frontend accordingly
 
         await QUEUE.cancelRegistration(form_id = data.form_id, client_id = data.client_id)
         

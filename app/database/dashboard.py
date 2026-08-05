@@ -2,45 +2,144 @@ from config.environment import database
 from bson import objectid
 from app.utils.database import utils_db_get_token
 from app.schemas.dashboard import CoordinatorRequest
-from app.utils.helpers import get_ist_time
+from app.utils.helpers import get_ist_time, get_ist_date
 
-async def db_create_analytics(admin_id:str):
-    data = {
-        "admin_id":admin_id,
-        "total":0,
-        "skipped":0,
-        "checked":0,
-        "removed":0,
-        "canceled":0
-    }
-    db = database["Analytics"]
-    dashboard = db["Dashboard"]
+class DBAnalyticsOps:
+    def __init__(self):
+        self.db = database["Analytics"]
+        self.dashboard = self.db["Dashboard"]
 
-    await dashboard.insert_one(data)
+    async def db_create_analytics(self, admin_id: str) -> None:
+        data = {
+            "admin_id": admin_id, 
+            "date": get_ist_date(),
+            "total": 0,
+            "checked": 0,
+            "skipped": 0,
+            "removed": 0,
+            "canceled": 0,
+        }
+        
+        await self.dashboard.insert_one(data)
+
+    async def db_inc_total(self, admin_id: str) -> None:
+
+        result = await self.dashboard.update_one(
+            {"admin_id":admin_id, "date": get_ist_date()},
+            {"$inc":{"total":1}}
+        )
+
+        if result.matched_count == 0:
+            await self.db_create_analytics(admin_id)
+            result = await self.dashboard.update_one(
+                {"admin_id":admin_id, "date": get_ist_date()},
+                {"$inc":{"total":1}}
+            )
+    async def db_inc_checked(self, admin_id: str) -> None:
+            # implement a verification such that the total checked user dosen't exceeds the total number of users.
+
+            result = await self.dashboard.update_one(
+                {"admin_id":admin_id, "date": get_ist_date()},
+                {"$inc":{"checked":1}}
+            )
+    
+            if result.matched_count == 0:
+                await self.db_create_analytics(admin_id)
+                result = await self.dashboard.update_one(
+                    {"admin_id":admin_id, "date": get_ist_date()},
+                    {"$inc":{"total":1}}
+                )
+    async def db_inc_skipped(self, admin_id: str) -> None:
+        result = await self.dashboard.update_one(
+            {"admin_id":admin_id, "date": get_ist_date()},
+            {"$inc":{"skipped":1}}
+        )
+
+        if result.matched_count == 0:
+            await self.db_create_analytics(admin_id)
+            await self.dashboard.update_one(
+                {"admin_id":admin_id, "date": get_ist_date()},
+                {"$inc":{"skipped":1}}
+            )
+    async def db_inc_cancel(self, admin_id: str):
+        result = await self.dashboard.update_one(
+            {"admin_id":admin_id, "date": get_ist_date()},
+            {"$inc":{"canceled":1}}
+        )
+
+        if result.matched_count == 0:
+            await self.db_create_analytics(admin_id)
+            await self.dashboard.update_one(
+                {"admin_id":admin_id, "date": get_ist_date()},
+                {"$inc":{"canceled":1}}
+            )
+
+    async def db_inc_removed(self, admin_id: str) -> None:
+        result = await self.dashboard.update_one(
+            {"admin_id":admin_id, "date": get_ist_date()},
+            {"$inc":{"removed":1}}
+        )
+
+        if result.matched_count() == 0:
+            await self.db_create_analytics(admin_id)
+            await self.dashboard.update_one(
+                {"admin_id":admin_id, "date": get_ist_date()},
+                {"$inc":{"removed":1}}
+            )
+
+analytics = DBAnalyticsOps()
+
+
+# async def db_create_analytics(admin_id:str):
+#     data = {
+#         "admin_id":admin_id,
+#         "total":0,
+#         "skipped":0,
+#         "checked":0,
+#         "removed":0,
+#         "canceled":0
+#     }
+#     db = database["Analytics"]
+#     dashboard = db["Dashboard"]
+
+#     await dashboard.insert_one(data)
 
 async def db_get_dashboard_stats(admin_id) -> dict:
+    '''
+    Note: Dashboard analytics are updated for selection as per the date, so you can update it for:
+        -> Last 7 days activity
+        -> Selected date activity
+        -> etc..
+    '''
     try:
         db = database["Analytics"]
         dashboard = db["Dashboard"]
 
-        result = await dashboard.find_one({"admin_id":admin_id},{"_id":0})
-        data = {
-            "total": result["total"],
-            "checked": result["checked"],
-            "waiting": result["total"] - (result["checked"] + result["canceled"]),
-            "canceled": result["canceled"]
-        }
+        result = await dashboard.find_one({"admin_id":admin_id, "date": get_ist_date()},{"_id":0})
+        
         if result:
+            data = {
+                "total": result["total"],
+                "checked": result["checked"],
+                "waiting": result["total"] - (result["checked"] + result["canceled"]),
+                "canceled": result["canceled"]
+            }
             return {
                 "message":"Admin Dashboard data fetched!",
                 "status":True,
                 "data":data
             }
         else:
+            data = {
+                "total": 0,
+                "checked": 0,
+                "waiting": 0,
+                "canceled": 0
+            }
             return {
                 "message":"Admin Dashboard data not found!",
-                "status":False,
-                "data":None
+                "status":True,
+                "data":data
             }
 
     except Exception as e:
@@ -170,22 +269,22 @@ async def db_done_missed(client_id:str, form_id:str):
             "status":False
         }
 
-async def db_update_analytics(admin_id:str, field:str):
-    try:
-        db = database["Analytics"]
-        dashboard = db["Dashboard"]
+# async def db_update_analytics(admin_id:str, field:str):
+#     try:
+#         db = database["Analytics"]
+#         dashboard = db["Dashboard"]
         
-        await dashboard.update_one(
-            {"admin_id":admin_id},
-            {"$inc":{field:1}}
-        )
-        return {
-            "message":"Analytics updated successfully",
-            "status":True
-        }
-    except Exception as e:
-        print(e)
-        return {
-            "message":f"Action was successful but dashboard update failed due to:{e}",
-            "status":False
-        }
+#         await dashboard.update_one(
+#             {"admin_id":admin_id},
+#             {"$inc":{field:1}}
+#         )
+#         return {
+#             "message":"Analytics updated successfully",
+#             "status":True
+#         }
+#     except Exception as e:
+#         print(e)
+#         return {
+#             "message":f"Action was successful but dashboard update failed due to:{e}",
+#             "status":False
+#         }

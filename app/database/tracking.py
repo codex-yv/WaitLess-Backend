@@ -36,7 +36,7 @@ async def db_next_customer(form_id: str, client_id: str):
     try:
         db = database["Submissions"] 
         collections = db[form_id]
-        started = await utils_db_get_form_activated(form_id)
+        started = await utils_db_get_form_activated(form_id) # this function is no longer needed.
         await utils_db_update_form_activated(form_id)
 
         await collections.update_one(
@@ -67,14 +67,14 @@ async def db_next_customer(form_id: str, client_id: str):
 
         return {
             "message": "Next customer updated successfully",
-            "started": started,
+            "started": started, # remove this key and update frontend accordingly.
             "status":True
         }
     except Exception as e:
         print(e)
         return {
             "message": f"Failed to update next customer: {str(e)}",
-            "started": started,
+            "started": started, # remove this key and update frontend accordingly.
             "status":False
         }
 

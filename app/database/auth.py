@@ -1,6 +1,6 @@
 from config.environment import database
 from app.schemas.auth import LoginRequest, SignupRequest, CoordinatorLoginRequest
-from app.database.dashboard import db_create_analytics
+from app.database.dashboard import analytics
 from app.utils.database import utils_db_create_coordinators
 from app.utils.security import create_admin_token
 
@@ -80,7 +80,7 @@ async def db_create_user(data:SignupRequest)-> dict:
             }
             result = await admin.insert_one(admin_data)
 
-            await db_create_analytics(str(result.inserted_id))
+            await analytics.db_create_analytics(str(result.inserted_id))
             await utils_db_create_coordinators(email = data.email, token=token, admin_id = str(result.inserted_id))
             
             return {
