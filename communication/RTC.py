@@ -46,7 +46,7 @@ class ConnectionManager:
                 "loc":"livequeue_cum_dashboard_cdc",
                 "client_id":client_id,
                 "live_queue":result_live_queue["data"],
-                "dashboard": result_dashboard["data"]
+                "dashboard": True
             }
             await self.connection[admin_id].send_json(data=formatted_data)
 

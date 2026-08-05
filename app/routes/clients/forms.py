@@ -76,7 +76,8 @@ async def submit_client_form(data:SubmitFormRequest):
                 await analytics.db_inc_total(admin_id = admin_id)
                 await analytics.db_add_activity(admin_id = admin_id, activity = "join", info = f"Client #{client_id} joined queue.")
             
-            await rtc.submitFormToAdmin(admin_id=admin_id, form_id=data.form_id, data=data.params_val) # added rtc
+            await rtc.submitFormToAdmin(admin_id=admin_id, form_id=data.form_id, data = data.params_val) # added rtc
+            
             await QUEUE.addNewPerson(form_id = data.form_id, client_id = client_id) # Queue implementation
 
             return SubmitFormResponse(
