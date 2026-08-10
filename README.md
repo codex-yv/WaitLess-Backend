@@ -1,130 +1,65 @@
-# Queue Eliminator
-**Queue Eliminator** is a web application designed to eliminate long waiting lines at places like banks, hospitals, and government offices simply by scanning a **QR code**. 
+<div align="center">
+  <img src="logo2.png" alt="WaitLess Logo" width="240" />
 
+  # WaitLess
 
-### 💡 The Problem We All Face
+  **Smart Digital Queue Management System**
 
-We’ve all been there. Standing in a long queue at a bank. Sitting for hours in a hospital lobby. Waiting endlessly at a government office or even a barber shop just for your number to be called.
+  [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+  [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+  [![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://render.com/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+</div>
 
-***Most of that time? Completely wasted.***
+---
 
-You can’t leave because you might miss your turn. So you just sit there, watching numbers move slowly, feeling stuck and unproductive.
+## Overview
 
-### ✨ What If It Was Different?
+**WaitLess** is a modern web application designed to eliminate physical waiting lines at banks, hospitals, government offices, salons, and commercial spaces through seamless QR code-based digital queuing.
 
-*What if you didn’t have to physically stand in line?*
+### The Problem
 
-**With Queue Eliminator, you simply:**
+Standing in long queues wastes valuable time and causes frustration. Visitors are traditionally forced to remain seated in crowded lobbies just to preserve their position in line.
 
-- Scan a QR code at the location
-- Fill out a quick form (if required)
-- *`Join the queue digitally`*
+### The Solution
 
-Now instead of waiting in one place, you’re free.
+With **WaitLess**, visitors simply:
 
-- Go grab a coffee ☕
-- Finish your errands 🛒
-- Get some fresh air 🌿
+- Scan a location-specific QR code on their smartphone
+- Fill out an intake form (if required)
+- Secure their spot in the digital queue
 
-Meanwhile, **Queue Eliminator keeps you updated with:**
+Visitors are free to utilize their waiting time productively outside the lobby while receiving live position updates and timely alerts on their devices.
 
-- 📍 Your live position in the queue
-- ⏰ Real-time updates
-- 🔔 Alerts before your turn arrives
+---
 
+## How It Works
 
-### 🎯 The Goal
+1. **Administrator Onboarding**: Service providers sign up and register their location on the WaitLess platform.
+2. **Form Configuration**: Administrators create customized intake forms tailored to their service requirements.
+3. **QR Code Generation**: The platform generates a unique digital queue access link and QR code.
+4. **Digital Check-In**: Customers scan the QR code to join the queue remotely without standing in line.
 
-To give people back their time, reduce frustration, and make waiting smarter, not longer.
+---
 
-## ⚙️ How It Works
-### 1) Admin Registration
-- The admin signs up on our platform and sets up their service (bank, hospital, office, etc.).
-### 2) Create a Custom Form
-- Based on their requirements, the admin creates a simple form to collect necessary details from users.
-### 3) Generate QR Code
-- Once the form is ready, the system generates a unique link along with a QR code.
-### 4) User Joins the Queue
-- Customers simply scan the QR code, fill out the form (if required), and instantly secure their spot in the queue, without standing in line.
+## Key Features
 
-## ✨ Features
-### 👨‍💼 Admin
-- 📊 **Real-Time Dashboard & Analytics**
-    - Monitor key metrics like total clients, skipped clients, and missed clients within a selected time range.
-- 🤝 **Add Coordinators**
--   - Invite team members to help manage operations and keep everything in sync.
-- 📝 **Custom Form Builder**
-    - Create forms based on your specific requirements to collect client details.
-- ⏱️ **Flexible Scheduling Controls**
-    - Set time per appointment and define QR code expiry duration.
-- 📍 **Live Queue Management**
-    - Track clients in real time and manage the queue efficiently with actions like:
-        -  Call the next client
-        - Skip a client
+### Administrator Tools
+- **Real-Time Analytics & Command Center**: Monitor metrics including total, completed, skipped, and cancelled appointments within selected timeframes.
+- **Team Management**: Add coordinators and staff members to streamline multi-counter operations.
+- **Custom Form Builder**: Design dynamic forms to capture client information efficiently.
+- **Flexible Scheduling Controls**: Configure appointment durations and token expiry thresholds.
+- **Live Queue Management**: Monitor and control active queues with one-click actions (Call Next, Skip, Cancel).
 
-### 🙋‍♂️ Client
-- 📱 **Personal Dashboard**
-    - Stay updated with all important queue details in one place.
-- 🔢 **Real-Time Queue Position**
-    - Know your exact spot in the queue at any moment.
-- ⏳ **Estimated Waiting Time**
-    - Get a clear idea of how much time is left for your turn.
-- 🚨 **Emergency Notifications**
-    - Send urgent messages or updates to the admin if needed.
-- 🔔 **Custom Reminders**
-    - Set alerts so you never miss your turn.
-- 🔄 **Spot Exchange**
-    - Option to swap your position in the queue with another client.
-- ❌ **Easy Cancellation**
-    - Cancel your appointment anytime with a single click.
+### Client Experience
+- **Personal Dashboard**: Track all active queue details from a clean mobile interface.
+- **Real-Time Queue Position**: Monitor live position changes in real time.
+- **Estimated Waiting Time**: View dynamic ETA calculations.
+- **Emergency Notifications**: Send urgent notifications or updates to administrators when necessary.
+- **Custom Reminders**: Set automated alerts before an appointment turn arrives.
+- **Spot Exchange**: Request queue position swaps with other waiting clients.
+- **Instant Cancellation**: Cancel appointments anytime with a single click.
 
-
-## Contribution
-### Forking and Cloning
-1) Fork the project.
-2) Clone the forked project.
-3) Go to the cloned folder and run the following command:
-```bash
-git remote add upstream https://github.com/original-owner/repo.git
-```
-### Making changes in code
-1) Sync Your Fork **(Important)** - Before starting any work.
-
-- Run the following command:
-
-```bash
-git checkout main
-git pull upstream main
-git push origin main
-```
-2) Create a new branch
-    - Format of branch name: your name in short/label/work in very short format. For example:<br>
-    *youraj verma : yv <br>*
-    *label: fix/bug/feat/updt <br>*
-    *work: readme<br>*
-    then branch name will be : `yv/updt/readme`
-```bash
-git checkout -b yv/updt/readme
-```
-You are now ready to make changes.
-
-### Pushing your code
-1) Make Changes and Commit
-
-```bash
-git add .
-git commit -m "Describe your changes clearly"
-```
-2) Keep Your Branch Updated (Recommended)
-
-- Before pushing, run:
-```bash
-git fetch upstream
-git merge upstream/main
-```
-
-3) Push Your Changes
-```bash
-git push origin yv/updt/readme
-```
-**You can now merge your new branch to the main/dev branch.**
+---
