@@ -33,3 +33,9 @@ class SubmitFormResponse(BaseModel):
     access_token:Union[str, None]
     token_type:Union[str, None]
 
+class DeleteFormResponse(BaseModel):
+    message:str
+    status: bool
+
+class DeleteFormRequest(BaseModel):
+    form_id: str

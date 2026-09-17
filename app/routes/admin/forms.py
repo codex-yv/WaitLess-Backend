@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 
-from app.database.forms import db_get_forms, db_create_form
+from app.database.forms import db_get_forms, db_create_form, db_delete_form
 
 from app.schemas.errors import ErrorResponse
-from app.schemas.forms import FormsResponse, CreateFormRequest, CreateFormResponse
+from app.schemas.forms import (FormsResponse, CreateFormRequest, CreateFormResponse, DeleteFormRequest,
+                               DeleteFormResponse)
 
 from app.utils.security import verify_request
 router = APIRouter(prefix="/api/admin/form", tags=["Admin Form"])
@@ -51,4 +52,9 @@ async def create_form(data:CreateFormRequest, jwt_info:dict = Depends(verify_req
                 success=False
             ).model_dump()
         )
+
+@router.post("/delete-form", response_model = DeleteFormResponse)
+async def deleteForm(data: DeleteFormRequest, jwt_info:dict = Depends(verify_request)):
+    res = await db_delete_form(data = data)
+    return DeleteFormResponse(**res)
     

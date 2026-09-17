@@ -1,6 +1,6 @@
 from bson import ObjectId
 from config.environment import database
-from app.schemas.forms import CreateFormRequest,SubmitFormRequest 
+from app.schemas.forms import CreateFormRequest,SubmitFormRequest, DeleteFormRequest
 from app.utils.helpers import get_ist_date, is_time_expired, get_ist_time
 
 async def db_get_forms(admin_id:str):
@@ -115,6 +115,32 @@ async def db_create_form(admin_id:str, form_params:CreateFormRequest):
             "status":False
         }
     
+async def db_delete_form(data:DeleteFormRequest):
+    db = database["Forms"]
+    collection = db["forms"]
+
+    db2 = database["Submissions"]
+    try:
+        res = await collection.delete_one({"_id": ObjectId(data.form_id)})
+        db2.drop_collection(data.form_id)
+
+    except Exception as e:
+        # print(e)
+        return {
+            "message": "Error occurred while deleting the form!",
+            "status": False
+        }
+    
+    if res.deleted_count:
+        return {
+            "message": "Form delete successfully.",
+            "status": True
+        }
+    return {
+        "message": "Form deletion failed!",
+        "status": False
+    }
+
 async def db_submit_client_form(data:SubmitFormRequest, client_id:str):
     try:
         db = database["Submissions"]
